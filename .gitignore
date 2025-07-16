@@ -14,37 +14,9 @@ migrate_working_dir/
 
 # IntelliJ related
 *.iml
-.DS_Store
-*.swp
-*.swo
-*.pyc
-*.log
-*.tmp
-*.temp
-*.obj
-*.o
-*.a
-*.lib
-*.so
-*.dll
-*.exe
-*.pdb
-*.idb
-*.ilk
-*.ipdb
-*.iobj
-# Flutter/Dart/Pub related
-.dart_tool
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
-build/
-coverage/
-test/widget_test.dart
-analysis_options.yaml
-lib/main.dart
-README.md
-pubspec.yaml
+*.ipr
+*.iws
+.idea/
 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
