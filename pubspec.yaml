@@ -31,6 +31,9 @@ dependencies:
   flutter:
     sdk: flutter
   get: ^4.6.5 # 添加 GetX 依赖
+  flutter_screenutil: ^5.9.0
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

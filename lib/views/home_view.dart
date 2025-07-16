@@ -1,35 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../controllers/home_controller.dart';
+import 'record_view.dart';
 
-part 'home_controller.dart'; // 引入控制器
+class HomeView extends StatefulWidget {
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
 
-class HomeView extends StatelessWidget {
+class _HomeViewState extends State<HomeView> {
+  int _selectedIndex = 0;
+
+  static const List<Widget> _pages = <Widget>[
+    Center(child: Text('首页', style: TextStyle(fontSize: 24))),
+    RecordView(),
+    Center(child: Text('统计', style: TextStyle(fontSize: 24))),
+    Center(child: Text('我的', style: TextStyle(fontSize: 24))),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final HomeController controller = Get.put(HomeController());
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Baby Tracker'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Obx(() => Text(
-                  '${controller.count.value}',
-                  style: Theme.of(context).textTheme.headline4,
-                ))
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: controller.increment,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
+      appBar: AppBar(title: Text('Baby Tracker')),
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
+          BottomNavigationBarItem(icon: Icon(Icons.edit), label: '记录'),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: '统计'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        onTap: _onItemTapped,
       ),
     );
   }
