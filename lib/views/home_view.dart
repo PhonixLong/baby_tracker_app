@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
 import 'record_view.dart';
+import 'growth_record_page.dart';
 
 class HomeView extends StatefulWidget {
   @override
@@ -14,7 +15,7 @@ class _HomeViewState extends State<HomeView> {
   static const List<Widget> _pages = <Widget>[
     Center(child: Text('首页', style: TextStyle(fontSize: 24))),
     RecordView(),
-    Center(child: Text('统计', style: TextStyle(fontSize: 24))),
+    GrowthStatsPage(),
     Center(child: Text('我的', style: TextStyle(fontSize: 24))),
   ];
 
