@@ -1,6 +1,6 @@
 {
-    "name": "baby_tracker_app",
-    "short_name": "baby_tracker_app",
+    "name": "宝宝录",
+    "short_name": "宝宝录",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

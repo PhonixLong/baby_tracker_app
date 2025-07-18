@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:baby_tracker_app/controllers/items/feeding_timer_controller.dart';
+import 'package:baby_tracker_app/utils/dialogs.dart';
 
 class FeedingTimerPage extends GetView<FeedingTimerController> {
   const FeedingTimerPage({super.key});
@@ -77,207 +78,167 @@ class FeedingTimerPage extends GetView<FeedingTimerController> {
 
   void _showCompleteDialog(BuildContext context) {
     final controller = Get.find<FeedingTimerController>();
-    Get.dialog(
-      Obx(
-        () => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18.r),
-          ),
-          insetPadding: EdgeInsets.symmetric(horizontal: 20.w),
-          title: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.local_drink, color: Colors.blue, size: 24.w),
-              SizedBox(width: 8.w),
-              Flexible(
-                child: Text(
-                  '完善喂养信息',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18.sp,
-                  ),
-                ),
+    showGetDialog(
+      context: context,
+      icon: Icon(Icons.local_drink, color: Colors.blue, size: 24.w),
+      title: Text(
+        '完善喂养信息',
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp),
+      ),
+      content: Obx(
+        () => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '喂养类型',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.sp),
+            ),
+            SizedBox(height: 6.h),
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              children: controller.feedingTypes
+                  .map(
+                    (type) => ChoiceChip(
+                      label: Text(type, style: TextStyle(fontSize: 14.sp)),
+                      selected: controller.feedingType.value == type,
+                      onSelected: (v) {
+                        if (v) {
+                          controller.feedingType.value = type;
+                          controller.amount.value = null;
+                          controller.breastAmount.value = null;
+                          controller.formulaAmount.value = null;
+                          controller.recordBreastByTime.value = false;
+                        }
+                      },
+                    ),
+                  )
+                  .toList(),
+            ),
+            SizedBox(height: 16.h),
+            if (controller.feedingType.value == '混合') ...[
+              Text(
+                '母乳量记录方式',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.sp),
               ),
-            ],
-          ),
-          content: ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: 0.8.sh),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              SizedBox(height: 6.h),
+              Wrap(
+                spacing: 8.w,
                 children: [
-                  Text(
-                    '喂养类型',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16.sp,
-                    ),
+                  ChoiceChip(
+                    label: Text('毫升', style: TextStyle(fontSize: 14.sp)),
+                    selected: !controller.recordBreastByTime.value,
+                    onSelected: (v) {
+                      controller.recordBreastByTime.value = false;
+                    },
                   ),
-                  SizedBox(height: 6.h),
-                  Wrap(
-                    spacing: 8.w,
-                    runSpacing: 8.h,
-                    children: controller.feedingTypes
-                        .map(
-                          (type) => ChoiceChip(
-                            label: Text(
-                              type,
-                              style: TextStyle(fontSize: 14.sp),
-                            ),
-                            selected: controller.feedingType.value == type,
-                            onSelected: (v) {
-                              if (v) {
-                                controller.feedingType.value = type;
-                                controller.amount.value = null;
-                                controller.breastAmount.value = null;
-                                controller.formulaAmount.value = null;
-                                controller.recordBreastByTime.value = false;
-                              }
-                            },
-                          ),
-                        )
-                        .toList(),
+                  ChoiceChip(
+                    label: Text('耗时', style: TextStyle(fontSize: 14.sp)),
+                    selected: controller.recordBreastByTime.value,
+                    onSelected: (v) {
+                      controller.recordBreastByTime.value = true;
+                    },
                   ),
-                  SizedBox(height: 16.h),
-                  if (controller.feedingType.value == '混合') ...[
-                    Text(
-                      '母乳量记录方式',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16.sp,
-                      ),
-                    ),
-                    SizedBox(height: 6.h),
-                    Wrap(
-                      spacing: 8.w,
-                      children: [
-                        ChoiceChip(
-                          label: Text('毫升', style: TextStyle(fontSize: 14.sp)),
-                          selected: !controller.recordBreastByTime.value,
-                          onSelected: (v) =>
-                              controller.recordBreastByTime.value = false,
-                        ),
-                        ChoiceChip(
-                          label: Text('耗时', style: TextStyle(fontSize: 14.sp)),
-                          selected: controller.recordBreastByTime.value,
-                          onSelected: (v) =>
-                              controller.recordBreastByTime.value = true,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8.h),
-                    if (controller.recordBreastByTime.value)
-                      _styledInput(
-                        label: '母乳时长（分钟）',
-                        initial: controller.duration.value != null
-                            ? (controller.duration.value!.inMinutes +
-                                      (controller.duration.value!.inSeconds %
-                                              60) /
-                                          60.0)
-                                  .toStringAsFixed(1)
-                            : '',
-                        onChanged: (v) =>
-                            controller.breastAmount.value = double.tryParse(v),
-                      )
-                    else
-                      _styledInput(
-                        label: '母乳量（ml）',
-                        onChanged: (v) =>
-                            controller.breastAmount.value = double.tryParse(v),
-                      ),
-                    _styledInput(
-                      label: '配方奶量（ml）',
-                      onChanged: (v) =>
-                          controller.formulaAmount.value = double.tryParse(v),
-                    ),
-                  ] else if (controller.feedingType.value == '母乳') ...[
-                    Text(
-                      '母乳量记录方式',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16.sp,
-                      ),
-                    ),
-                    SizedBox(height: 6.h),
-                    Wrap(
-                      spacing: 8.w,
-                      children: [
-                        ChoiceChip(
-                          label: Text('毫升', style: TextStyle(fontSize: 14.sp)),
-                          selected: !controller.recordBreastByTime.value,
-                          onSelected: (v) =>
-                              controller.recordBreastByTime.value = false,
-                        ),
-                        ChoiceChip(
-                          label: Text('耗时', style: TextStyle(fontSize: 14.sp)),
-                          selected: controller.recordBreastByTime.value,
-                          onSelected: (v) =>
-                              controller.recordBreastByTime.value = true,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8.h),
-                    if (controller.recordBreastByTime.value)
-                      _styledInput(
-                        label: '母乳时长（分钟）',
-                        initial: controller.duration.value != null
-                            ? (controller.duration.value!.inMinutes +
-                                      (controller.duration.value!.inSeconds %
-                                              60) /
-                                          60.0)
-                                  .toStringAsFixed(1)
-                            : '',
-                        onChanged: (v) =>
-                            controller.amount.value = double.tryParse(v),
-                      )
-                    else
-                      _styledInput(
-                        label: '母乳量（ml）',
-                        onChanged: (v) =>
-                            controller.amount.value = double.tryParse(v),
-                      ),
-                  ] else ...[
-                    _styledInput(
-                      label: '量（ml）',
-                      onChanged: (v) =>
-                          controller.amount.value = double.tryParse(v),
-                    ),
-                  ],
-                  SizedBox(height: 16.h),
-                  if (controller.duration.value != null)
-                    Text(
-                      '耗时：${controller.duration.value!.inMinutes}分${controller.duration.value!.inSeconds % 60}秒',
-                      style: TextStyle(
-                        color: Colors.grey[700],
-                        fontSize: 16.sp,
-                      ),
-                    ),
                 ],
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Get.back(),
-              child: Text('取消', style: TextStyle(fontSize: 16.sp)),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                await controller.saveRecord();
-                Get.back();
-                Get.snackbar(
-                  '提示',
-                  '喂养记录已保存',
-                  snackPosition: SnackPosition.BOTTOM,
-                );
-              },
-              child: Text('保存', style: TextStyle(fontSize: 16.sp)),
-            ),
+              SizedBox(height: 8.h),
+              if (controller.recordBreastByTime.value)
+                _styledInput(
+                  label: '母乳时长（分钟）',
+                  initial: controller.duration.value != null
+                      ? (controller.duration.value!.inMinutes +
+                                (controller.duration.value!.inSeconds % 60) /
+                                    60.0)
+                            .toStringAsFixed(1)
+                      : '',
+                  onChanged: (v) =>
+                      controller.breastAmount.value = double.tryParse(v),
+                )
+              else
+                _styledInput(
+                  label: '母乳量（ml）',
+                  onChanged: (v) =>
+                      controller.breastAmount.value = double.tryParse(v),
+                ),
+              _styledInput(
+                label: '配方奶量（ml）',
+                onChanged: (v) =>
+                    controller.formulaAmount.value = double.tryParse(v),
+              ),
+            ] else if (controller.feedingType.value == '母乳') ...[
+              Text(
+                '母乳量记录方式',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.sp),
+              ),
+              SizedBox(height: 6.h),
+              Wrap(
+                spacing: 8.w,
+                children: [
+                  ChoiceChip(
+                    label: Text('毫升', style: TextStyle(fontSize: 14.sp)),
+                    selected: !controller.recordBreastByTime.value,
+                    onSelected: (v) {
+                      controller.recordBreastByTime.value = false;
+                    },
+                  ),
+                  ChoiceChip(
+                    label: Text('耗时', style: TextStyle(fontSize: 14.sp)),
+                    selected: controller.recordBreastByTime.value,
+                    onSelected: (v) {
+                      controller.recordBreastByTime.value = true;
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.h),
+              if (controller.recordBreastByTime.value)
+                _styledInput(
+                  label: '母乳时长（分钟）',
+                  initial: controller.duration.value != null
+                      ? (controller.duration.value!.inMinutes +
+                                (controller.duration.value!.inSeconds % 60) /
+                                    60.0)
+                            .toStringAsFixed(1)
+                      : '',
+                  onChanged: (v) =>
+                      controller.amount.value = double.tryParse(v),
+                )
+              else
+                _styledInput(
+                  label: '母乳量（ml）',
+                  onChanged: (v) =>
+                      controller.amount.value = double.tryParse(v),
+                ),
+            ] else ...[
+              _styledInput(
+                label: '量（ml）',
+                onChanged: (v) => controller.amount.value = double.tryParse(v),
+              ),
+            ],
+            SizedBox(height: 16.h),
+            if (controller.duration.value != null)
+              Text(
+                '耗时：${controller.duration.value!.inMinutes}分${controller.duration.value!.inSeconds % 60}秒',
+                style: TextStyle(color: Colors.grey[700], fontSize: 16.sp),
+              ),
           ],
         ),
       ),
-      barrierDismissible: false,
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: Text('取消', style: TextStyle(fontSize: 16.sp)),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            await controller.saveRecord();
+            Get.back();
+            Get.snackbar('提示', '喂养记录已保存', snackPosition: SnackPosition.BOTTOM);
+          },
+          child: Text('保存', style: TextStyle(fontSize: 16.sp)),
+        ),
+      ],
     );
   }
 

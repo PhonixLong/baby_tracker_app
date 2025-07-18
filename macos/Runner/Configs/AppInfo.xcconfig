@@ -12,3 +12,5 @@ PRODUCT_BUNDLE_IDENTIFIER = com.example.babyTrackerApp
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2025 com.example. All rights reserved.
+
+APP_DISPLAY_NAME = 宝宝录

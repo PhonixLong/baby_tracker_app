@@ -112,6 +112,7 @@ class FeedingAddRecordPage extends GetView<FeedingAddRecordController> {
                   onChanged: (v) =>
                       controller.formulaAmount.value = double.tryParse(v),
                 ),
+              ] else if (controller.feedingType.value == '母乳') ...[
                 Text(
                   '母乳量记录方式',
                   style: TextStyle(
