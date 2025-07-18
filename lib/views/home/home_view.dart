@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/home_controller.dart';
-import 'record_view.dart';
-import 'growth_record_page.dart';
+import '../../controllers/home_controller.dart';
+import '../record/record_view.dart';
+import '../stats/stats_home_page.dart';
 
 class HomeView extends StatefulWidget {
   @override
@@ -12,10 +12,10 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   int _selectedIndex = 0;
 
-  static const List<Widget> _pages = <Widget>[
+  static List<Widget> _pages = <Widget>[
     Center(child: Text('首页', style: TextStyle(fontSize: 24))),
     RecordView(),
-    GrowthStatsPage(),
+    StatsHomePage(),
     Center(child: Text('我的', style: TextStyle(fontSize: 24))),
   ];
 
