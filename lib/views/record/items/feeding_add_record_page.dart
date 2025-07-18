@@ -1,79 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:baby_tracker_app/controllers/items/feeding_add_record_controller.dart';
 
-class FeedingAddRecordPage extends StatefulWidget {
-  const FeedingAddRecordPage({Key? key}) : super(key: key);
-  @override
-  State<FeedingAddRecordPage> createState() => _FeedingAddRecordPageState();
-}
-
-class _FeedingAddRecordPageState extends State<FeedingAddRecordPage> {
-  String _feedingType = '母乳';
-  final List<String> _feedingTypes = ['母乳', '配方奶', '混合'];
-  bool _recordBreastByTime = false; // 默认毫升在前
-  double? _amount;
-  double? _breastAmount;
-  double? _formulaAmount;
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _startTime = TimeOfDay.now();
-  TimeOfDay _endTime = TimeOfDay.now();
-  Duration? _duration;
-
-  void _updateDuration() {
-    final start = DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
-      _startTime.hour,
-      _startTime.minute,
-    );
-    final end = DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
-      _endTime.hour,
-      _endTime.minute,
-    );
-    setState(() {
-      _duration = end.isAfter(start) ? end.difference(start) : null;
-    });
-  }
-
-  Future<void> _pickStartTime() async {
-    final t = await showTimePicker(context: context, initialTime: _startTime);
-    if (t != null) {
-      setState(() {
-        _startTime = t;
-        _updateDuration();
-      });
-    }
-  }
-
-  Future<void> _pickEndTime() async {
-    final t = await showTimePicker(context: context, initialTime: _endTime);
-    if (t != null) {
-      setState(() {
-        _endTime = t;
-        _updateDuration();
-      });
-    }
-  }
-
-  Future<void> _pickDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now().subtract(Duration(days: 365)),
-      lastDate: DateTime.now(),
-    );
-    if (date != null) {
-      setState(() {
-        _selectedDate = date;
-        _updateDuration();
-      });
-    }
-  }
+class FeedingAddRecordPage extends GetView<FeedingAddRecordController> {
+  const FeedingAddRecordPage({super.key});
 
   Widget _styledInput({
     required String label,
@@ -98,268 +29,215 @@ class _FeedingAddRecordPageState extends State<FeedingAddRecordPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 确保controller注入
+    Get.put(FeedingAddRecordController());
     return Scaffold(
       appBar: AppBar(
         title: Text('添加喂养记录', style: TextStyle(fontSize: 20.sp)),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(24.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '喂养类型',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.sp),
-            ),
-            SizedBox(height: 6.h),
-            Wrap(
-              spacing: 8.w,
-              runSpacing: 8.h,
-              children: _feedingTypes
-                  .map(
-                    (type) => ChoiceChip(
-                      label: Text(type, style: TextStyle(fontSize: 14.sp)),
-                      selected: _feedingType == type,
-                      onSelected: (v) {
-                        if (v)
-                          setState(() {
-                            _feedingType = type;
-                            _amount = null;
-                            _breastAmount = null;
-                            _formulaAmount = null;
-                            _recordBreastByTime = false;
-                          });
-                      },
+        child: Obx(
+          () => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '喂养类型',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.sp),
+              ),
+              SizedBox(height: 6.h),
+              Wrap(
+                spacing: 8.w,
+                runSpacing: 8.h,
+                children: controller.feedingTypes
+                    .map(
+                      (type) => ChoiceChip(
+                        label: Text(type, style: TextStyle(fontSize: 14.sp)),
+                        selected: controller.feedingType.value == type,
+                        onSelected: (v) {
+                          if (v) {
+                            controller.feedingType.value = type;
+                            controller.amount.value = null;
+                            controller.breastAmount.value = null;
+                            controller.formulaAmount.value = null;
+                            controller.recordBreastByTime.value = false;
+                          }
+                        },
+                      ),
+                    )
+                    .toList(),
+              ),
+              SizedBox(height: 16.h),
+              if (controller.feedingType.value == '混合') ...[
+                Text(
+                  '母乳量记录方式',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16.sp,
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                Wrap(
+                  spacing: 8.w,
+                  children: [
+                    ChoiceChip(
+                      label: Text('毫升', style: TextStyle(fontSize: 14.sp)),
+                      selected: !controller.recordBreastByTime.value,
+                      onSelected: (v) =>
+                          controller.recordBreastByTime.value = false,
                     ),
+                    ChoiceChip(
+                      label: Text('耗时', style: TextStyle(fontSize: 14.sp)),
+                      selected: controller.recordBreastByTime.value,
+                      onSelected: (v) =>
+                          controller.recordBreastByTime.value = true,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8.h),
+                if (!controller.recordBreastByTime.value)
+                  _styledInput(
+                    label: '母乳量（ml）',
+                    onChanged: (v) =>
+                        controller.breastAmount.value = double.tryParse(v),
                   )
-                  .toList(),
-            ),
-            SizedBox(height: 16.h),
-            if (_feedingType == '混合') ...[
+                else
+                  _styledInput(
+                    label: '母乳时长（分钟）',
+                    onChanged: (v) =>
+                        controller.breastAmount.value = double.tryParse(v),
+                  ),
+                _styledInput(
+                  label: '配方奶量（ml）',
+                  onChanged: (v) =>
+                      controller.formulaAmount.value = double.tryParse(v),
+                ),
+                Text(
+                  '母乳量记录方式',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16.sp,
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                Wrap(
+                  spacing: 8.w,
+                  children: [
+                    ChoiceChip(
+                      label: Text('毫升', style: TextStyle(fontSize: 14.sp)),
+                      selected: !controller.recordBreastByTime.value,
+                      onSelected: (v) =>
+                          controller.recordBreastByTime.value = false,
+                    ),
+                    ChoiceChip(
+                      label: Text('耗时', style: TextStyle(fontSize: 14.sp)),
+                      selected: controller.recordBreastByTime.value,
+                      onSelected: (v) =>
+                          controller.recordBreastByTime.value = true,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8.h),
+                if (!controller.recordBreastByTime.value)
+                  _styledInput(
+                    label: '母乳量（ml）',
+                    onChanged: (v) =>
+                        controller.amount.value = double.tryParse(v),
+                  )
+                else
+                  _styledInput(
+                    label: '母乳时长（分钟）',
+                    onChanged: (v) =>
+                        controller.amount.value = double.tryParse(v),
+                    initial: controller.duration.value != null
+                        ? (controller.duration.value!.inMinutes +
+                                  (controller.duration.value!.inSeconds % 60) /
+                                      60.0)
+                              .toStringAsFixed(1)
+                        : '',
+                  ),
+              ] else ...[
+                _styledInput(
+                  label: '量（ml）',
+                  onChanged: (v) =>
+                      controller.amount.value = double.tryParse(v),
+                ),
+              ],
+              SizedBox(height: 16.h),
               Text(
-                '母乳量记录方式',
+                '喂养时间',
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.sp),
               ),
               SizedBox(height: 6.h),
-              Wrap(
-                spacing: 8.w,
+              Row(
                 children: [
-                  ChoiceChip(
-                    label: Text('毫升', style: TextStyle(fontSize: 14.sp)),
-                    selected: !_recordBreastByTime,
-                    onSelected: (v) =>
-                        setState(() => _recordBreastByTime = false),
+                  Text(
+                    '${controller.selectedDate.value.year}-${controller.selectedDate.value.month.toString().padLeft(2, '0')}-${controller.selectedDate.value.day.toString().padLeft(2, '0')}',
                   ),
-                  ChoiceChip(
-                    label: Text('耗时', style: TextStyle(fontSize: 14.sp)),
-                    selected: _recordBreastByTime,
-                    onSelected: (v) =>
-                        setState(() => _recordBreastByTime = true),
+                  SizedBox(width: 8.w),
+                  OutlinedButton.icon(
+                    icon: Icon(Icons.edit, size: 20.sp),
+                    label: Text('选择日期', style: TextStyle(fontSize: 14.sp)),
+                    onPressed: () => controller.pickDate(context),
                   ),
                 ],
               ),
               SizedBox(height: 8.h),
-              if (!_recordBreastByTime)
-                _styledInput(
-                  label: '母乳量（ml）',
-                  onChanged: (v) => _breastAmount = double.tryParse(v),
-                )
-              else
-                _styledInput(
-                  label: '母乳时长（分钟）',
-                  onChanged: (v) => _breastAmount = double.tryParse(v),
-                ),
-              _styledInput(
-                label: '配方奶量（ml）',
-                onChanged: (v) => _formulaAmount = double.tryParse(v),
-              ),
-            ] else if (_feedingType == '母乳') ...[
-              Text(
-                '母乳量记录方式',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.sp),
-              ),
-              SizedBox(height: 6.h),
               Wrap(
                 spacing: 8.w,
+                runSpacing: 8.h,
                 children: [
-                  ChoiceChip(
-                    label: Text('毫升', style: TextStyle(fontSize: 14.sp)),
-                    selected: !_recordBreastByTime,
-                    onSelected: (v) =>
-                        setState(() => _recordBreastByTime = false),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '开始: ${controller.startTime.value.format(context)}',
+                        style: TextStyle(fontSize: 14.sp),
+                      ),
+                      SizedBox(width: 8.w),
+                      OutlinedButton(
+                        child: Text('选择开始', style: TextStyle(fontSize: 14.sp)),
+                        onPressed: () => controller.pickStartTime(context),
+                      ),
+                    ],
                   ),
-                  ChoiceChip(
-                    label: Text('耗时', style: TextStyle(fontSize: 14.sp)),
-                    selected: _recordBreastByTime,
-                    onSelected: (v) =>
-                        setState(() => _recordBreastByTime = true),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '结束: ${controller.endTime.value.format(context)}',
+                        style: TextStyle(fontSize: 14.sp),
+                      ),
+                      SizedBox(width: 8.w),
+                      OutlinedButton(
+                        child: Text('选择结束', style: TextStyle(fontSize: 14.sp)),
+                        onPressed: () => controller.pickEndTime(context),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              SizedBox(height: 8.h),
-              if (!_recordBreastByTime)
-                _styledInput(
-                  label: '母乳量（ml）',
-                  onChanged: (v) => _amount = double.tryParse(v),
-                )
-              else
-                _styledInput(
-                  label: '母乳时长（分钟）',
-                  onChanged: (v) => _amount = double.tryParse(v),
-                  initial: _duration != null
-                      ? (_duration!.inMinutes +
-                                (_duration!.inSeconds % 60) / 60.0)
-                            .toStringAsFixed(1)
-                      : '',
+              if (controller.duration.value != null)
+                Padding(
+                  padding: EdgeInsets.only(top: 8.h),
+                  child: Text(
+                    '自动计算时长：${controller.duration.value!.inMinutes}分${controller.duration.value!.inSeconds % 60}秒',
+                    style: TextStyle(color: Colors.blue, fontSize: 14.sp),
+                  ),
                 ),
-            ] else ...[
-              _styledInput(
-                label: '量（ml）',
-                onChanged: (v) => _amount = double.tryParse(v),
+              SizedBox(height: 24.h),
+              Center(
+                child: ElevatedButton.icon(
+                  icon: Icon(Icons.save, size: 20.sp),
+                  label: Text('保存记录', style: TextStyle(fontSize: 16.sp)),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(160.w, 48.h),
+                  ),
+                  onPressed: () => controller.saveRecord(context),
+                ),
               ),
             ],
-            SizedBox(height: 16.h),
-            Text(
-              '喂养时间',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.sp),
-            ),
-            SizedBox(height: 6.h),
-            Row(
-              children: [
-                Text(
-                  '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}',
-                ),
-                SizedBox(width: 8.w),
-                OutlinedButton.icon(
-                  icon: Icon(Icons.edit, size: 20.sp),
-                  label: Text('选择日期', style: TextStyle(fontSize: 14.sp)),
-                  onPressed: _pickDate,
-                ),
-              ],
-            ),
-            SizedBox(height: 8.h),
-            Wrap(
-              spacing: 8.w,
-              runSpacing: 8.h,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '开始: ${_startTime.format(context)}',
-                      style: TextStyle(fontSize: 14.sp),
-                    ),
-                    SizedBox(width: 8.w),
-                    OutlinedButton(
-                      child: Text('选择开始', style: TextStyle(fontSize: 14.sp)),
-                      onPressed: _pickStartTime,
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '结束: ${_endTime.format(context)}',
-                      style: TextStyle(fontSize: 14.sp),
-                    ),
-                    SizedBox(width: 8.w),
-                    OutlinedButton(
-                      child: Text('选择结束', style: TextStyle(fontSize: 14.sp)),
-                      onPressed: _pickEndTime,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            if (_duration != null)
-              Padding(
-                padding: EdgeInsets.only(top: 8.h),
-                child: Text(
-                  '自动计算时长：${_duration!.inMinutes}分${_duration!.inSeconds % 60}秒',
-                  style: TextStyle(color: Colors.blue, fontSize: 14.sp),
-                ),
-              ),
-            SizedBox(height: 24.h),
-            Center(
-              child: ElevatedButton.icon(
-                icon: Icon(Icons.save, size: 20.sp),
-                label: Text('保存记录', style: TextStyle(fontSize: 16.sp)),
-                style: ElevatedButton.styleFrom(minimumSize: Size(160.w, 48.h)),
-                onPressed: () async {
-                  final box = await Hive.openBox('feedingRecords');
-                  final dt = DateTime(
-                    _selectedDate.year,
-                    _selectedDate.month,
-                    _selectedDate.day,
-                    _startTime.hour,
-                    _startTime.minute,
-                  );
-                  final endDt = DateTime(
-                    _selectedDate.year,
-                    _selectedDate.month,
-                    _selectedDate.day,
-                    _endTime.hour,
-                    _endTime.minute,
-                  );
-                  final durationSec = _duration?.inSeconds;
-                  if (_feedingType == '混合') {
-                    if (_breastAmount != null && _breastAmount! > 0) {
-                      box.add({
-                        'type': _recordBreastByTime ? '母乳(时长)' : '母乳(ml)',
-                        'value': _breastAmount,
-                        'unit': _recordBreastByTime ? 'min' : 'ml',
-                        'date': dt.toIso8601String(),
-                        'end': endDt.toIso8601String(),
-                        'duration': durationSec,
-                      });
-                    }
-                    if (_formulaAmount != null && _formulaAmount! > 0) {
-                      box.add({
-                        'type': '配方奶',
-                        'value': _formulaAmount,
-                        'unit': 'ml',
-                        'date': dt.toIso8601String(),
-                        'end': endDt.toIso8601String(),
-                        'duration': durationSec,
-                      });
-                    }
-                  } else if (_feedingType == '母乳') {
-                    if (_amount != null && _amount! > 0) {
-                      box.add({
-                        'type': _recordBreastByTime ? '母乳(时长)' : '母乳(ml)',
-                        'value': _amount,
-                        'unit': _recordBreastByTime ? 'min' : 'ml',
-                        'date': dt.toIso8601String(),
-                        'end': endDt.toIso8601String(),
-                        'duration': durationSec,
-                      });
-                    }
-                  } else if (_feedingType == '配方奶') {
-                    if (_amount != null && _amount! > 0) {
-                      box.add({
-                        'type': '配方奶',
-                        'value': _amount,
-                        'unit': 'ml',
-                        'date': dt.toIso8601String(),
-                        'end': endDt.toIso8601String(),
-                        'duration': durationSec,
-                      });
-                    }
-                  }
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        '喂养记录已保存',
-                        style: TextStyle(fontSize: 16.sp),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
