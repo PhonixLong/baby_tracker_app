@@ -3,6 +3,7 @@ import 'daily_record_page.dart';
 import 'growth_record_page.dart';
 import 'medical_record_page.dart';
 import 'milestone_record_page.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class RecordView extends StatelessWidget {
   const RecordView({Key? key}) : super(key: key);
@@ -37,13 +38,15 @@ class RecordView extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: Text('记录')),
+      appBar: AppBar(
+        title: Text('记录', style: TextStyle(fontSize: 20.sp)),
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.w),
         child: GridView.count(
           crossAxisCount: 2,
-          mainAxisSpacing: 24,
-          crossAxisSpacing: 24,
+          mainAxisSpacing: 24.h,
+          crossAxisSpacing: 24.w,
           children: categories.map((cat) {
             return GestureDetector(
               onTap: () {
@@ -54,25 +57,25 @@ class RecordView extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   color: cat.color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: cat.color, width: 2),
+                  borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(color: cat.color, width: 2.w),
                   boxShadow: [
                     BoxShadow(
                       color: cat.color.withOpacity(0.08),
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
+                      blurRadius: 8.r,
+                      offset: Offset(0, 4.h),
                     ),
                   ],
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(cat.icon, size: 48, color: cat.color),
-                    SizedBox(height: 16),
+                    Icon(cat.icon, size: 48.w, color: cat.color),
+                    SizedBox(height: 16.h),
                     Text(
                       cat.title,
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 20.sp,
                         color: cat.color,
                         fontWeight: FontWeight.bold,
                       ),

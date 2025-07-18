@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'items/feeding_timer_page.dart';
+import 'items/feeding_add_record_page.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class DailyRecordPage extends StatelessWidget {
   final List<DailyItem> items = const [
@@ -22,27 +25,25 @@ class DailyRecordPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final maxCardWidth = 120.0;
-    final crossAxisSpacing = 16.0;
-    final mainAxisSpacing = 16.0;
     return Scaffold(
-      appBar: AppBar(title: Text('日常记录')),
+      appBar: AppBar(
+        title: Text('日常记录', style: TextStyle(fontSize: 20.sp)),
+      ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.w),
         children: [
           Text(
             '日常小类',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: 12),
+          SizedBox(height: 12.h),
           GridView.builder(
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: maxCardWidth,
-              crossAxisSpacing: crossAxisSpacing,
-              mainAxisSpacing: mainAxisSpacing,
+              maxCrossAxisExtent: 120.w,
+              crossAxisSpacing: 16.w,
+              mainAxisSpacing: 16.h,
               childAspectRatio: 1,
             ),
             itemCount: items.length,
@@ -69,29 +70,93 @@ class DailyCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (item.title == '喂养') {
-          // TODO: 迁移喂养相关弹窗逻辑
+          showModalBottomSheet(
+            context: context,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+            ),
+            builder: (context) {
+              return Padding(
+                padding: EdgeInsets.all(24.w),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '喂养操作',
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 24.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton.icon(
+                          icon: Icon(Icons.timer),
+                          label: Text('喂养计时'),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: Size(120.w, 48.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => FeedingTimerPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        ElevatedButton.icon(
+                          icon: Icon(Icons.add),
+                          label: Text('添加记录'),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: Size(120.w, 48.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => FeedingAddRecordPage(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
         } else {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('点击了${item.title}')));
+          ).showSnackBar(SnackBar(content: Text('点击了"${item.title}"')));
         }
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 2),
+        margin: EdgeInsets.symmetric(vertical: 2.h),
         decoration: BoxDecoration(
           color: item.color.withOpacity(0.12),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: item.color, width: 1.5),
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(color: item.color, width: 1.5.w),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(item.icon, size: 38, color: item.color),
-            SizedBox(height: 10),
+            Icon(item.icon, size: 38.w, color: item.color),
+            SizedBox(height: 10.h),
             Text(
               item.title,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 15.sp,
                 color: item.color,
                 fontWeight: FontWeight.w600,
               ),

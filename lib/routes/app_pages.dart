@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import '../views/home_view.dart';
+import '../views/home/home_view.dart';
 
 class AppPages {
   static const initial = Routes.home;

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 // 主统计入口页面
-class StatsHomePage extends StatelessWidget {
+class StatsPage extends StatelessWidget {
   final List<_StatEntry> entries = [
     _StatEntry('体重', Icons.monitor_weight, Colors.green, WeightStatsPage()),
     _StatEntry('身高', Icons.height, Colors.blue, HeightStatsPage()),
@@ -13,29 +14,35 @@ class StatsHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('成长统计')),
+      appBar: AppBar(
+        title: Text('成长统计', style: TextStyle(fontSize: 20.sp)),
+      ),
       body: ListView.separated(
-        padding: EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+        padding: EdgeInsets.symmetric(vertical: 32.h, horizontal: 24.w),
         itemCount: entries.length,
-        separatorBuilder: (_, __) => SizedBox(height: 24),
+        separatorBuilder: (_, __) => SizedBox(height: 24.h),
         itemBuilder: (context, i) {
           final entry = entries[i];
           return Card(
             elevation: 4,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(20.r),
             ),
             child: ListTile(
-              leading: Icon(entry.icon, size: 40, color: entry.color),
+              leading: Icon(entry.icon, size: 40.w, color: entry.color),
               title: Text(
                 entry.title,
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 22.sp,
                   fontWeight: FontWeight.bold,
                   color: entry.color,
                 ),
               ),
-              trailing: Icon(Icons.chevron_right, color: Colors.grey),
+              trailing: Icon(
+                Icons.chevron_right,
+                color: Colors.grey,
+                size: 20.w,
+              ),
               onTap: () {
                 Navigator.of(
                   context,
@@ -105,9 +112,11 @@ class _SingleStatPageState extends State<_SingleStatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.type}统计')),
+      appBar: AppBar(
+        title: Text('${widget.type}统计', style: TextStyle(fontSize: 20.sp)),
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.w),
         child: Column(
           children: [
             Row(
@@ -122,20 +131,28 @@ class _SingleStatPageState extends State<_SingleStatPage> {
                   },
                   children: [
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      padding: EdgeInsets.symmetric(horizontal: 12.w),
                       child: Row(
-                        children: [Icon(Icons.show_chart), Text('图表')],
+                        children: [
+                          Icon(Icons.show_chart, size: 20.w),
+                          Text('图表', style: TextStyle(fontSize: 14.sp)),
+                        ],
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(children: [Icon(Icons.list), Text('列表')]),
+                      padding: EdgeInsets.symmetric(horizontal: 12.w),
+                      child: Row(
+                        children: [
+                          Icon(Icons.list, size: 20.w),
+                          Text('列表', style: TextStyle(fontSize: 14.sp)),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Expanded(child: showChart ? _buildChart() : _buildList()),
           ],
         ),
@@ -148,18 +165,29 @@ class _SingleStatPageState extends State<_SingleStatPage> {
       future: _getRecords(),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('暂无${widget.type}记录'));
+          return Center(
+            child: Text(
+              '暂无${widget.type}记录',
+              style: TextStyle(fontSize: 16.sp),
+            ),
+          );
         }
         final records = snapshot.data!;
         return ListView.separated(
           itemCount: records.length,
-          separatorBuilder: (_, __) => Divider(),
+          separatorBuilder: (_, __) => Divider(height: 1.h),
           itemBuilder: (context, i) {
             final r = records[i];
             return ListTile(
-              leading: Icon(Icons.circle, color: Colors.grey),
-              title: Text('${r['value']} ${r['unit']}'),
-              subtitle: Text('${r['date'].toString().substring(0, 10)}'),
+              leading: Icon(Icons.circle, color: Colors.grey, size: 20.w),
+              title: Text(
+                '${r['value']} ${r['unit']}',
+                style: TextStyle(fontSize: 16.sp),
+              ),
+              subtitle: Text(
+                '${r['date'].toString().substring(0, 10)}',
+                style: TextStyle(fontSize: 14.sp),
+              ),
             );
           },
         );
@@ -172,11 +200,16 @@ class _SingleStatPageState extends State<_SingleStatPage> {
       future: _getRecords(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
+          return Center(child: CircularProgressIndicator(strokeWidth: 20.w));
         }
         final records = snapshot.data!;
         if (records.isEmpty) {
-          return Center(child: Text('暂无${widget.type}记录'));
+          return Center(
+            child: Text(
+              '暂无${widget.type}记录',
+              style: TextStyle(fontSize: 16.sp),
+            ),
+          );
         }
         final baseDate =
             DateTime.tryParse(records.first['date'] ?? '') ?? DateTime.now();
@@ -228,11 +261,11 @@ class _SingleStatPageState extends State<_SingleStatPage> {
         return Card(
           elevation: 4,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
           ),
-          margin: const EdgeInsets.symmetric(vertical: 12),
+          margin: EdgeInsets.symmetric(vertical: 12.h),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
             child: Column(
               children: [
                 Row(
@@ -241,20 +274,23 @@ class _SingleStatPageState extends State<_SingleStatPage> {
                       '${widget.type}变化',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 16.sp,
                       ),
                     ),
                     Spacer(),
                     if (unit.isNotEmpty)
                       Text(
                         '单位: $unit',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 13.sp,
+                        ),
                       ),
                   ],
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: 12.h),
                 SizedBox(
-                  height: 220,
+                  height: 220.h,
                   child: LineChart(
                     LineChartData(
                       minY: minY,
@@ -265,13 +301,13 @@ class _SingleStatPageState extends State<_SingleStatPage> {
                         leftTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 36,
+                            reservedSize: 36.w,
                           ),
                         ),
                         bottomTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 48,
+                            reservedSize: 48.w,
                             getTitlesWidget: (value, meta) {
                               if (!labelDays.contains(value))
                                 return Container();
@@ -280,10 +316,10 @@ class _SingleStatPageState extends State<_SingleStatPage> {
                                 return Container();
                               final date = dateList[labelIndexes[idx]];
                               return Padding(
-                                padding: const EdgeInsets.only(top: 6.0),
+                                padding: EdgeInsets.only(top: 6.h),
                                 child: Text(
                                   '${date.month}/${date.day}',
-                                  style: TextStyle(fontSize: 12),
+                                  style: TextStyle(fontSize: 12.sp),
                                 ),
                               );
                             },
@@ -311,7 +347,7 @@ class _SingleStatPageState extends State<_SingleStatPage> {
                           isCurved: true,
                           curveSmoothness: 0.25,
                           color: widget.color,
-                          barWidth: 3,
+                          barWidth: 3.w,
                           belowBarData: BarAreaData(
                             show: true,
                             gradient: LinearGradient(
@@ -327,7 +363,7 @@ class _SingleStatPageState extends State<_SingleStatPage> {
                             show: true,
                             getDotPainter: (spot, percent, bar, index) {
                               return FlDotCirclePainter(
-                                radius: 3,
+                                radius: 3.w,
                                 color: widget.color,
                                 strokeWidth: 0,
                                 strokeColor: widget.color,
@@ -337,8 +373,8 @@ class _SingleStatPageState extends State<_SingleStatPage> {
                           isStrokeCapRound: true,
                           shadow: Shadow(
                             color: widget.color.withOpacity(0.25),
-                            blurRadius: 8,
-                            offset: Offset(0, 4),
+                            blurRadius: 8.w,
+                            offset: Offset(0, 4.h),
                           ),
                         ),
                       ],
@@ -360,7 +396,7 @@ class _SingleStatPageState extends State<_SingleStatPage> {
                                 TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                                  fontSize: 13.sp,
                                 ),
                               );
                             }).toList();

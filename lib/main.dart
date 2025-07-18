@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: Size(375, 812), // 以 iPhone X 为设计稿尺寸，可根据实际 UI 修改
+      designSize: Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
